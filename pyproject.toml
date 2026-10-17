@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "cadence-lifecycle-economics"
+version = "0.1.0"
+description = "Independent lifecycle economic calculations and HAZUS consequence extraction for CADENCE"
+requires-python = ">=3.10"
+dependencies = ["polars>=1.0,<2", "duckdb>=1.4,<2", "pydantic>=2,<3", "pyarrow>=15,<24"]
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+[tool.setuptools.packages.find]
+where = ["src"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

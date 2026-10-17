@@ -1,0 +1,11 @@
+# Approved methodology; no unapproved cost defaults.
+horizon_years: 30
+financial_basis: real
+terminal_method: straight_line_remaining_service
+baseline_policy: keep_until_burnout
+hazard_method: REQUIRE_VERIFIED_CADENCE_AEL
+age_over_30: block_unsupported_consequences
+maintenance: disabled_unless_explicit
+salvage: disabled_unless_explicit
+insurance_rules: not_modeled
+climate_trajectories: 1
