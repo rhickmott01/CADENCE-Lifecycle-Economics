@@ -7,7 +7,7 @@ KEYS=["asset_id","decision_year","option_id"]
 STREAMS=["maintenance_real","building_loss_real","contents_loss_real","downtime_real","debris_brick_wood_real","debris_concrete_steel_real","disposal_real","salvage_credit_real"]
 
 def build_cashflows(options: pl.DataFrame, annual_costs: pl.DataFrame, horizon_years: int=30, real_discount_rate: float=0.03) -> pl.DataFrame:
-    """Build real-dollar year-end operating flows and terminal credit at t=horizon.
+    """Build real-dollar offset-t flows and terminal credit at t=horizon.
 
     Annual-cost input must contain every named stream, explicitly zero for
     disabled streams. A separate flag/config is required upstream to distinguish
@@ -25,11 +25,14 @@ def build_cashflows(options: pl.DataFrame, annual_costs: pl.DataFrame, horizon_y
     events=project_fixed_eul_events(options,horizon_years).group_by(KEYS+["offset"]).agg(pl.col("event_cost_real").sum().alias("replacement_real"))
     costs=costs.join(events,on=KEYS+["offset"],how="left").with_columns(pl.col("replacement_real").fill_null(0))
     costs=costs.with_columns(total_real=(pl.sum_horizontal(*[pl.col(c) for c in STREAMS if c!="salvage_credit_real"],pl.col("replacement_real"))-pl.col("salvage_credit_real")))
-    costs=costs.with_columns(discounted_real=pl.col("total_real")/(1+real_discount_rate)**pl.col("offset"), financial_year=pl.col("decision_year")+pl.col("offset"))
-    residual=terminal_residual(options,horizon_years).with_columns(offset=pl.lit(horizon_years),financial_year=pl.col("decision_year")+horizon_years,total_real=-pl.col("terminal_value_real"),discounted_real=-pl.col("terminal_value_real")/(1+real_discount_rate)**horizon_years)
+    costs=costs.with_columns(discount_factor=1/(1+real_discount_rate)**pl.col("offset"), terminal_credit_real=pl.lit(0.0), cashflow_type=pl.lit("annual"), financial_year=pl.col("decision_year")+pl.col("offset"))
+    costs=costs.with_columns(discounted_real=pl.col("total_real")*pl.col("discount_factor"))
+    residual=terminal_residual(options,horizon_years).with_columns(offset=pl.lit(horizon_years),financial_year=pl.col("decision_year")+horizon_years,total_real=-pl.col("terminal_value_real"),terminal_credit_real=pl.col("terminal_value_real"),cashflow_type=pl.lit("terminal"),discount_factor=pl.lit(1/(1+real_discount_rate)**horizon_years))
+    residual=residual.with_columns(discounted_real=pl.col("total_real")*pl.col("discount_factor"))
     for col in STREAMS+["replacement_real"]:
         residual=residual.with_columns(pl.lit(0.0).alias(col))
-    return pl.concat([costs.select(KEYS+["offset","financial_year"]+STREAMS+["replacement_real","total_real","discounted_real"]),residual.select(KEYS+["offset","financial_year"]+STREAMS+["replacement_real","total_real","discounted_real"])],how="vertical").sort(KEYS+["offset"])
+    columns=KEYS+["offset","financial_year","cashflow_type"]+STREAMS+["replacement_real","terminal_credit_real","discount_factor","total_real","discounted_real"]
+    return pl.concat([costs.select(columns),residual.select(columns)],how="vertical_relaxed").sort(KEYS+["offset"])
 
 def compare_options(cashflows: pl.DataFrame, baseline_option_id: str="baseline") -> pl.DataFrame:
     require_columns(cashflows, KEYS+["discounted_real"], "cashflows")

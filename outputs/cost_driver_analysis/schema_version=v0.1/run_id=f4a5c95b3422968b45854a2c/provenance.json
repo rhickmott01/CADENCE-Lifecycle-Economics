@@ -1,0 +1,49 @@
+{
+  "artifacts": {
+    "annual_cashflows.parquet": "5ba3198dfc026b6ad3752aebfce65ee5951e00420caa0c227d973b03de7ebf76",
+    "annual_costs.parquet": "c66c69d68f636a872f082e7f6a2110e98a40970722ce2c893ff006e98f0a42be",
+    "component_metadata.parquet": "a88ea65feef6d7fd0141dc59517d4b20fcadab11b7c6e11de5c6c6b94953cde0",
+    "disposal_events.csv": "171cf029d77def18faa7346a955469823de6ef109d1af8e4b25da04422aed0ca",
+    "disposal_events.parquet": "a9e1c25ee580d5ade74b13dcdf2d3c73877e25c58242eae64dc2c02d73310aef",
+    "housing_reference.parquet": "4db8c4cc341d633ce0d84d7913ac2cb9442ced71f6dc058ffe0b66aa959cd7ae",
+    "mass_reference.parquet": "beba9d4a5555966a1ad0e37e0a9ee1053fc46f8a9e9fe4db71d5e4546fd53051",
+    "npv_contributions.csv": "b661cd0115d4e12dc27a2fdfa28f26f233397d714aeb409f015209417a60e0d5",
+    "npv_contributions.parquet": "318e24e6c810b24b3e26a42317a2bb65a911a4d00d32d164bff2cd86478d5a42",
+    "npv_contributions.png": "af389d331c3bc9e71362607d517acf3968be959f158fffe0c281982cf7f41e0f",
+    "npv_contributions.svg": "f43c5cd30365cd4a9d5e5da9a9b8912b68a3532698997bab67d375aa62e6565b",
+    "option_results.csv": "9bf0647c442eb40f939d29ea6764c60427652b04afdf7d22307ca2203c7eaa94",
+    "option_results.parquet": "b633d28f278d2e40aae76fdd2114690c6e969e777fc1a62894730c36fe4c7572",
+    "options.parquet": "a422fca863dbe7ea577db0d4bf9c9129dafb9306f0499f9100a388e978114d36",
+    "run_metadata.json": "c7933f48b1533080220b7f6b8bc4f94abbc3ffe2b4cddc86eb97279c92cb5f9a"
+  },
+  "cadence_head": "33eeae6a5eae5d9758c59c97948ba5516714ba3a",
+  "lifecycle_head": "b6182e0de08015c6208a88f1c1123ee99e6924cc",
+  "reproduce": ".venv/bin/python -B scripts/run_cost_driver_analysis.py --output-root outputs/cost_driver_reproduction",
+  "sources": {
+    "cadence_contracts": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/CADENCE/src/cadence/economics/contracts.py",
+      "sha256": "52539706866ac4f6acb1b1d7e7214c6fa003d3d6fc83135a1a8bc67a2567bc28"
+    },
+    "cadence_externalities": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/CADENCE/src/cadence/economics/externalities.py",
+      "sha256": "2eb30e77133b945f3014218fd65d478c343f9e17ff9df7c6674d7057d7002f6d"
+    },
+    "cadence_materials": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/CADENCE/src/cadence/economics/materials.py",
+      "sha256": "f9fc1917c57700c530abf6d3d0d3556538ec12833c19d3f2963d6f56a71d01a4"
+    },
+    "eref_2024": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/cadence_shared_data/reference_data/disposal/EREF_2024_Tipping_Fees_Parsed.csv",
+      "sha256": "16ad7e4757f74cd10ede572be77a671a9607ce0ae917c4847ad10de225527687"
+    },
+    "hud_2025": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/cadence_shared_data/reference_data/loss_of_use/temporary_housing_relocation_costs.csv",
+      "sha256": "c7d7a8f2df4d80dc7f8f203b9e3eebe073d19d788bb26f34c9e5c27455a75cb5"
+    },
+    "roof_mass": {
+      "path": "/Users/robhickmott/Desktop/Python_Working_Folder/cadence_shared_data/reference_data/material_mass/roofing_lbs.csv",
+      "sha256": "e24e7d672e0bb0c02047c0dca4803a47277b9632761f68a47d35c45cbc392586"
+    }
+  },
+  "working_tree_identity": "per_source_hashes_in_run_metadata; HEAD_is_context_only"
+}

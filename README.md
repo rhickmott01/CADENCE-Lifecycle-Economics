@@ -2,7 +2,7 @@
 
 **Status: first-draft standalone repository, not yet integrated with the main CADENCE engine.**
 
-This package independently evaluates roofing lifecycle alternatives while preserving CADENCE's ownership of actual stock-flow state and decision rules. It does **not** modify or import the original CADENCE repository.
+This package independently evaluates roofing lifecycle alternatives while preserving CADENCE's ownership of actual stock-flow state and decision rules. It does **not** modify the original CADENCE repository. An opt-in read-only subprocess bridge reuses selected CADENCE reference calculations without importing its engine into this package's process.
 
 ## Implemented in draft 0.1
 
@@ -63,6 +63,17 @@ from cadence_lifecycle import project_fixed_eul_events, build_cashflows, compare
 ```
 
 See `docs/architecture.md`, `docs/data_contracts.md`, `docs/assumptions_register.md`, and `docs/validation_plan.md`.
+
+## Cost-driver analysis
+
+The component report reuses lifecycle discounting/baseline comparisons and CADENCE's disposal pricing helper. Disposal events now come from generated replacement schedules, tracking the actual removed roof material. CSV/Parquet contributions reconcile to total NPV; standalone SVG/PNG charts and source/artifact manifests accompany write-once runs.
+
+```bash
+python -m pip install -e '.[dev,report]'
+PYTHONDONTWRITEBYTECODE=1 python -B scripts/run_cost_driver_analysis.py
+```
+
+The example uses synthetic installation costs and fixed-EUL assumptions. Hazard and casualty benefits are excluded; the shared HUD rate is exported as a reference, with downtime costs disabled until supported expected days are supplied. See [report contracts and reproduction](docs/cost_driver_report.md) and [the integration roadmap](docs/PROJECT_CONTEXT.md#prioritized-integration-roadmap). The next priorities are property damage beyond the roof, contents damage, and loss of use; casualty-risk research is deferred.
 
 ## Development boundaries
 

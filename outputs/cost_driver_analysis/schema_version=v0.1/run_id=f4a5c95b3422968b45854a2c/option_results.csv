@@ -1,0 +1,4 @@
+asset_id,decision_year,option_id,npc_real,baseline_npc_real,incremental_npv_real,contribution_sum_real,reconciliation_error_real
+house_001,2026,baseline,10390.134243448048,10390.134243448048,0.0,0.0,0.0
+house_001,2026,replace_asphalt_now,16326.429653637424,10390.134243448048,-5936.295410189376,-5936.295410189376,0.0
+house_001,2026,upgrade_metal_now,22524.357753025586,10390.134243448048,-12134.223509577538,-12134.223509577538,0.0

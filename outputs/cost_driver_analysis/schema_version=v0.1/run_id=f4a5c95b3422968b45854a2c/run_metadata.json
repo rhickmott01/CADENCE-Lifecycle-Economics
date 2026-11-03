@@ -1,0 +1,58 @@
+{
+  "config": {
+    "base_dollar_year": 2026,
+    "baseline_option_id": "baseline",
+    "casualty_status": "research_pending; excluded_from_decision_total",
+    "disabled_components": [
+      "maintenance",
+      "building_loss",
+      "contents_loss",
+      "downtime",
+      "debris_brick_wood",
+      "debris_concrete_steel",
+      "salvage_credit"
+    ],
+    "discount_timing": "offset_t; terminal_at_30",
+    "disposal_dollar_basis": "fixed_2026_real_proxy; no_inflation_conversion",
+    "eul_status": "illustrative_fixed_EUL_overrides",
+    "horizon_years": 30,
+    "housing_status": "reference_rate_only; no_supported_expected_downtime_input",
+    "mass_identity": "exact_source_subtypes; not_official_class_consolidation",
+    "price_status": "synthetic_installation_costs",
+    "real_discount_rate": 0.03,
+    "report_schema_version": "cost_driver_v1",
+    "versions": {
+      "matplotlib": "3.11.2",
+      "numpy": "2.5.4",
+      "polars": "1.44.2",
+      "pyarrow": "23.0.1",
+      "pydantic": "2.14.1"
+    }
+  },
+  "inputs": {
+    "cadence_contracts": "52539706866ac4f6acb1b1d7e7214c6fa003d3d6fc83135a1a8bc67a2567bc28",
+    "cadence_externalities": "2eb30e77133b945f3014218fd65d478c343f9e17ff9df7c6674d7057d7002f6d",
+    "cadence_materials": "f9fc1917c57700c530abf6d3d0d3556538ec12833c19d3f2963d6f56a71d01a4",
+    "component_metadata": "5da60beaf9570e65718c0d7cd080370dfb1092a520da2f956565340ca6dff4b0",
+    "eref_2024": "16ad7e4757f74cd10ede572be77a671a9607ce0ae917c4847ad10de225527687",
+    "hud_2025": "c7d7a8f2df4d80dc7f8f203b9e3eebe073d19d788bb26f34c9e5c27455a75cb5",
+    "options": "1743d6b1afe56563b981dceb536d5b95c41424d7edb23201264f50ba30c23a20",
+    "pyproject.toml": "6e2f2b78a5655af777bd830cf604eb329ac6fa10d16a6dce2ae66832682ea226",
+    "roof_mass": "e24e7d672e0bb0c02047c0dca4803a47277b9632761f68a47d35c45cbc392586",
+    "src/cadence_lifecycle/__init__.py": "b12aad64536993b84f5c3e111365a8e8d1a72960eed6140e8e28f2982ba1f1e6",
+    "src/cadence_lifecycle/adapter.py": "4fb026a4df94cb4357f7d54ce92892c25dd56109d451746af768c3bfbb494747",
+    "src/cadence_lifecycle/cashflows.py": "fcdf2ffe8e50b9d99878f0fa6140e8003fbc5bb3ea0acae42d903914f0fe672d",
+    "src/cadence_lifecycle/consequences.py": "24528b2e50367381df3b980dca7ab2a82a2bbe2d839626fd3c779fbad29f726d",
+    "src/cadence_lifecycle/contracts.py": "25ebbe73f784bc6abf14821df2032f10bd5d6c40870ed51486c06f5d6a88be0f",
+    "src/cadence_lifecycle/disposal.py": "abbf66362206af319a4a9ce2bfe8bf506c4b19f690fddb8b902bcb7f8c119556",
+    "src/cadence_lifecycle/hazus.py": "7fe227eb64614f3f251916a00dbdb7c7bdb2cf3d170eb98c6cfbdddaf86a14f8",
+    "src/cadence_lifecycle/io.py": "d48c730b85a50d0865cfcc7251dbdd9eaff3e99885b37111f9ab374a23bdb3a6",
+    "src/cadence_lifecycle/pilot.py": "36133bbdad2253816b4c15a3189e0fbceda30386f339bf5e00d68a4bafccf370",
+    "src/cadence_lifecycle/reference.py": "930094987c3505eac8aff0b94231cee14c2d62e698fe293a92b5c042a87c0bcc",
+    "src/cadence_lifecycle/replacement.py": "b7f481ed18d63f324c194a40b11471c7220953b2f13628ef8b77631dc7c9bb13",
+    "src/cadence_lifecycle/reporting.py": "6184253a93f71f81af066fbed22baf86d5bc87acce2757509fa38c0919d2df6d",
+    "src/cadence_lifecycle/upstream.py": "645075b306a00961a3d4c86053b19887e326dfdf3706bbf4b4601145ba3b30da"
+  },
+  "package_version": "0.1.0",
+  "run_id": "f4a5c95b3422968b45854a2c"
+}

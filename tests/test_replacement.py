@@ -15,3 +15,12 @@ def test_terminal_value():
 
 def test_invalid_eul():
  with pytest.raises(ContractViolationError):project_fixed_eul_events(options().with_columns(pl.lit(0).alias("new_eul_years")))
+
+
+def test_unreplaced_roof_uses_existing_basis_and_excludes_terminal_installation():
+ roof=options().with_columns(initial_rul_years=pl.lit(35), existing_eul_years=pl.lit(40), replacement_cost_real=pl.lit(90000.0))
+ assert project_fixed_eul_events(roof,30).is_empty()
+ assert terminal_residual(roof,30)["terminal_value_real"][0]==1500.0
+ boundary=roof.with_columns(initial_rul_years=pl.lit(30))
+ assert project_fixed_eul_events(boundary,30).is_empty()
+ assert terminal_residual(boundary,30)["terminal_value_real"][0]==0.0

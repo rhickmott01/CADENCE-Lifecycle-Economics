@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.DS_Store
+*.code-workspace
+
+# Generated runs stay local; reviewed example artifacts may be added explicitly.
+/outputs/

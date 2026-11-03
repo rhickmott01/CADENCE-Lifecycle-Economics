@@ -24,6 +24,8 @@ One row per `(asset_id,year,option_id)` with `building_value_real`, `contents_va
 
 `lifecycle_annual_cashflows` grain `(asset_id,decision_year,option_id,offset)`; includes terminal credit at offset 30. `lifecycle_option_results` grain `(asset_id,decision_year,option_id)`; contains NPC and incremental NPV. `lifecycle_replacement_events` grain `(asset_id,decision_year,option_id,event_year)`; event data is hypothetical.
 
+Cash flows additionally expose `cashflow_type` (`annual` or `terminal`), `discount_factor`, and positive `terminal_credit_real` (zero on annual rows). Total costs subtract this credit. The reporter requires complete offsets from zero through a common terminal boundary. Component metadata, contribution outputs, disposal event inputs, and provenance are specified in [cost_driver_report.md](cost_driver_report.md).
+
 ## Source-value mappings
 
 Source label, normalized label, source dataset ID, mapping version, relationship type, canonical material ID, approved proxy ID and confidence must be preserved upstream. Unknown, ambiguous or unapproved values cannot enter simulation.

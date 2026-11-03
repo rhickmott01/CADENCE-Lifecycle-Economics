@@ -1,6 +1,6 @@
 # Architecture and ownership
 
-Main CADENCE is a read-only upstream reference. This repository has no git submodule, runtime import, or write access to main CADENCE. Proposed flow:
+Main CADENCE is a read-only upstream reference. This repository has no git submodule or direct in-process dependency on the CADENCE engine. An opt-in read-only subprocess bridge now reuses its disposal helper and material mapper; it does not execute stock-flow or adoption decisions. Proposed flow:
 
 1. CADENCE preprocessing provides ID-keyed asset, option, hazard and cost slices.
 2. DuckDB reads immutable HAZUS Parquet partitions and builds versioned consequence lookups.
@@ -11,6 +11,6 @@ Main CADENCE is a read-only upstream reference. This repository has no git submo
 
 No geospatial operations occur at simulation time. All future RUL transitions require an audited CADENCE-compatible adapter. Prefect is optional orchestration only.
 
-## Source-code compatibility audit required
+## Source-code compatibility
 
-The main repository was not accessible to the code-execution environment when drafting this archive. Prior discussion mentioned an Alternative Analysis README and existing 25-year analysis, but **no actual source functions or commit SHA have been verified in this draft**. Do not assert regression equivalence until the real source and tests are inspected.
+The initial archive lacked access to CADENCE. The subsequent local audit and HEAD references are recorded in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md). Source inspection and direct disposal-function reuse do not establish equivalence of hazard integration, repair valuation, production RUL transitions, or terminal conventions. Those remain integration gates.

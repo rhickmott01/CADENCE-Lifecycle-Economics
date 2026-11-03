@@ -9,6 +9,7 @@ requires-python = ">=3.10"
 dependencies = ["polars>=1.0,<2", "duckdb>=1.4,<2", "pydantic>=2,<3", "pyarrow>=15,<24"]
 [project.optional-dependencies]
 dev = ["pytest>=8,<10"]
+report = ["matplotlib>=3.9,<4"]
 [tool.setuptools.packages.find]
 where = ["src"]
 [tool.pytest.ini_options]
