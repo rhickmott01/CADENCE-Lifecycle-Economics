@@ -82,3 +82,9 @@ Following user approval, the component-reporting and generated-disposal-event im
 The mapping CSVs required for CADENCE official-class consolidation are absent from the current workspace. The pilot therefore uses exact shared-source material subtypes; the approved-mapping adapter fails closed when its files are missing. No mapping or physical service-life policy is invented. Existing financial/EUL pilot assumptions remain explicitly illustrative.
 
 The next modeling priorities are property damage beyond the roof, contents damage, and loss of use. [Casualty-risk research](casualty_research_plan.md) is deferred. Community baseline risk stays outside attributable upgrade benefits until the evidence and method are approved. The user has authorized committing and pushing this repository's reviewed changes on `feature/cost-driver-analysis`; sibling repositories remain read-only.
+
+## Loss-of-use implementation assumptions
+
+On November 3, 2026 the user confirmed configurable geography/housing size with a Durham/two-bedroom demonstration; storm-related temporary housing before insurance; validated HAZUS-derived annual expected displacement days; and documented conversion of the shared 2025 housing rate to a 2026 dollar base with constant real rates afterward. The detailed scope and remaining source-validation requirements are recorded in [assumptions_register.md](assumptions_register.md#loss-of-use-scope-confirmed-november-3-2026).
+
+The user holds the large HAZUS dataset in Duke Box. Access to the actual curve partitions and matching hazard inputs remains a prerequisite to a defensible numerical run. A local Box Drive path with targeted on-demand downloads is the recommended initial access route. No loss-of-use NPV has yet been calculated using these newly confirmed assumptions.
