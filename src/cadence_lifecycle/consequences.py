@@ -17,15 +17,20 @@ def integrate_discrete_hazard(curve_responses:pl.DataFrame, hazard_weights:pl.Da
     require_columns(hazard_weights,hk+["probability_mass"],"hazard_weights")
     require_unique(curve_responses,ck,"curve_responses")
     require_unique(hazard_weights,hk,"hazard_weights")
-    if curve_responses.filter(~pl.col("damage_type").is_in(list(MEASURES))).height:
+    if curve_responses.is_empty() or hazard_weights.is_empty():
+        raise ContractViolationError("hazard and response inputs cannot be empty")
+    if curve_responses.filter(pl.col("damage_type").is_null() | ~pl.col("damage_type").is_in(list(MEASURES))).height:
         raise ContractViolationError("unsupported damage type")
-    if hazard_weights.filter((pl.col("probability_mass")<0)|pl.col("probability_mass").is_null()).height:
+    if hazard_weights.filter((pl.col("probability_mass")<0)|pl.col("probability_mass").is_null()
+                            | ~pl.col("probability_mass").is_finite()
+                            | pl.col("wind_speed_mph").is_null() | ~pl.col("wind_speed_mph").is_finite()).height:
         raise ContractViolationError("invalid probability mass")
     totals=hazard_weights.group_by("asset_id","year").agg(pl.col("probability_mass").sum().alias("total"))
     if totals.filter((pl.col("total")-1).abs()>1e-7).height:
         raise ContractViolationError("hazard masses must sum to 1")
     joined=curve_responses.join(hazard_weights,on=hk,how="left",validate="m:1")
-    if joined.filter(pl.col("probability_mass").is_null()|pl.col("response_value").is_null()).height:
+    if joined.filter(pl.col("probability_mass").is_null()|pl.col("response_value").is_null()
+                     | ~pl.col("response_value").is_finite()).height:
         raise ContractViolationError("missing hazard support or curve response")
     if joined.filter((pl.col("response_value")<0)|((pl.col("damage_type").is_in(["building_loss","content_loss"]))&(pl.col("response_value")>1))).height:
         raise ContractViolationError("invalid response range")

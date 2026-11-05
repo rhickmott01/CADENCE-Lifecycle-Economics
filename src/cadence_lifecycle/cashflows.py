@@ -1,37 +1,64 @@
 """Annual lifecycle accounting, one baseline per asset and decision year."""
+import math
 import polars as pl
 from .contracts import ContractViolationError, require_columns, require_unique
 from .replacement import project_fixed_eul_events, terminal_residual
 
 KEYS=["asset_id","decision_year","option_id"]
 STREAMS=["maintenance_real","building_loss_real","contents_loss_real","downtime_real","debris_brick_wood_real","debris_concrete_steel_real","disposal_real","salvage_credit_real"]
+OPTIONAL_STREAMS = ["interior_loss_real"]
 
-def build_cashflows(options: pl.DataFrame, annual_costs: pl.DataFrame, horizon_years: int=30, real_discount_rate: float=0.03) -> pl.DataFrame:
+def build_cashflows(options: pl.DataFrame, annual_costs: pl.DataFrame, horizon_years: int=30, real_discount_rate: float=0.03, *, replacement_events: pl.DataFrame | None = None, terminal_values: pl.DataFrame | None = None) -> pl.DataFrame:
     """Build real-dollar offset-t flows and terminal credit at t=horizon.
 
     Annual-cost input must contain every named stream, explicitly zero for
     disabled streams. A separate flag/config is required upstream to distinguish
     disabled from unobserved data. Replacement event costs are paid at t=offset.
     """
-    if real_discount_rate <= -1:
+    if not math.isfinite(real_discount_rate) or real_discount_rate <= -1:
         raise ContractViolationError("discount rate must exceed -100%")
+    if not isinstance(horizon_years, int) or isinstance(horizon_years, bool) or horizon_years < 1:
+        raise ContractViolationError("horizon must be a positive integer")
+    streams = STREAMS + [c for c in OPTIONAL_STREAMS if c in annual_costs.columns]
     require_columns(annual_costs, KEYS+["offset"]+STREAMS, "annual_costs")
     require_unique(annual_costs, KEYS+["offset"], "annual_costs")
     require_unique(options, KEYS, "options")
+    if options.is_empty():
+        raise ContractViolationError("options cannot be empty")
     expected=options.select(KEYS).join(pl.DataFrame({"offset":range(horizon_years)}),how="cross")
+    if annual_costs.join(expected, on=KEYS+["offset"], how="anti").height:
+        raise ContractViolationError("annual costs contain rows outside option/horizon support")
     costs=expected.join(annual_costs,on=KEYS+["offset"],how="left",validate="1:1")
-    if costs.select(pl.any_horizontal(*[pl.col(c).is_null() for c in STREAMS])).to_series().any():
+    if costs.select(pl.any_horizontal(*[pl.col(c).is_null() | ~pl.col(c).is_finite() | (pl.col(c) < 0) for c in streams])).to_series().any():
         raise ContractViolationError("annual cost rows incomplete; never silently fill missing costs")
-    events=project_fixed_eul_events(options,horizon_years).group_by(KEYS+["offset"]).agg(pl.col("event_cost_real").sum().alias("replacement_real"))
+    if (replacement_events is None) != (terminal_values is None):
+        raise ContractViolationError("Upstream events and terminal values must be supplied together")
+    if replacement_events is not None:
+        require_columns(replacement_events, KEYS+["offset", "event_cost_real"], "upstream events")
+        require_unique(replacement_events, KEYS+["offset"], "upstream events")
+        if replacement_events.filter(pl.col("event_cost_real").is_null() | ~pl.col("event_cost_real").is_finite()
+                | (pl.col("event_cost_real") < 0)).height or replacement_events.join(expected, on=KEYS+["offset"], how="anti").height:
+            raise ContractViolationError("Invalid upstream replacement costs/support")
+        require_columns(terminal_values, KEYS+["terminal_value_real"], "upstream terminal values")
+        require_unique(terminal_values, KEYS, "upstream terminal values")
+        if terminal_values.filter(pl.col("terminal_value_real").is_null() | ~pl.col("terminal_value_real").is_finite()
+                | (pl.col("terminal_value_real") < 0)).height or terminal_values.height != options.height or options.select(KEYS).join(terminal_values.select(KEYS),on=KEYS,how="anti").height:
+            raise ContractViolationError("Invalid upstream terminal values/support")
+        event_rows = replacement_events
+        residual_rows = terminal_values
+    else:
+        event_rows = project_fixed_eul_events(options,horizon_years)
+        residual_rows = terminal_residual(options,horizon_years)
+    events=event_rows.group_by(KEYS+["offset"]).agg(pl.col("event_cost_real").sum().alias("replacement_real"))
     costs=costs.join(events,on=KEYS+["offset"],how="left").with_columns(pl.col("replacement_real").fill_null(0))
-    costs=costs.with_columns(total_real=(pl.sum_horizontal(*[pl.col(c) for c in STREAMS if c!="salvage_credit_real"],pl.col("replacement_real"))-pl.col("salvage_credit_real")))
+    costs=costs.with_columns(total_real=(pl.sum_horizontal(*[pl.col(c) for c in streams if c!="salvage_credit_real"],pl.col("replacement_real"))-pl.col("salvage_credit_real")))
     costs=costs.with_columns(discount_factor=1/(1+real_discount_rate)**pl.col("offset"), terminal_credit_real=pl.lit(0.0), cashflow_type=pl.lit("annual"), financial_year=pl.col("decision_year")+pl.col("offset"))
     costs=costs.with_columns(discounted_real=pl.col("total_real")*pl.col("discount_factor"))
-    residual=terminal_residual(options,horizon_years).with_columns(offset=pl.lit(horizon_years),financial_year=pl.col("decision_year")+horizon_years,total_real=-pl.col("terminal_value_real"),terminal_credit_real=pl.col("terminal_value_real"),cashflow_type=pl.lit("terminal"),discount_factor=pl.lit(1/(1+real_discount_rate)**horizon_years))
+    residual=residual_rows.with_columns(offset=pl.lit(horizon_years),financial_year=pl.col("decision_year")+horizon_years,total_real=-pl.col("terminal_value_real"),terminal_credit_real=pl.col("terminal_value_real"),cashflow_type=pl.lit("terminal"),discount_factor=pl.lit(1/(1+real_discount_rate)**horizon_years))
     residual=residual.with_columns(discounted_real=pl.col("total_real")*pl.col("discount_factor"))
-    for col in STREAMS+["replacement_real"]:
+    for col in streams+["replacement_real"]:
         residual=residual.with_columns(pl.lit(0.0).alias(col))
-    columns=KEYS+["offset","financial_year","cashflow_type"]+STREAMS+["replacement_real","terminal_credit_real","discount_factor","total_real","discounted_real"]
+    columns=KEYS+["offset","financial_year","cashflow_type"]+streams+["replacement_real","terminal_credit_real","discount_factor","total_real","discounted_real"]
     return pl.concat([costs.select(columns),residual.select(columns)],how="vertical_relaxed").sort(KEYS+["offset"])
 
 def compare_options(cashflows: pl.DataFrame, baseline_option_id: str="baseline") -> pl.DataFrame:

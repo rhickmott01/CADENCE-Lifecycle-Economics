@@ -26,7 +26,10 @@ def build_component_report(cashflows: pl.DataFrame, metadata: pl.DataFrame,
     explicit zeros. Enabled missing/nonfinite values fail closed. Cash-flow
     discount factors are reused, including at zero discount and zero-cost years.
     """
-    numeric = [column for column, _ in COMPONENTS.values()]
+    components = dict(COMPONENTS)
+    if "interior_loss_real" in cashflows.columns:
+        components["interior_loss"] = ("interior_loss_real", 1)
+    numeric = [column for column, _ in components.values()]
     require_unique(cashflows, KEYS + ["offset"], "cashflows")
     require_finite(cashflows, numeric + ["total_real", "discounted_real", "discount_factor"], "cashflows")
     if cashflows.is_empty() or not 1900 <= base_dollar_year <= 2200:
@@ -61,7 +64,7 @@ def build_component_report(cashflows: pl.DataFrame, metadata: pl.DataFrame,
         raise ContractViolationError("Invalid discount factor")
     if cashflows.filter(pl.any_horizontal(*[pl.col(c) < 0 for c in numeric])).height:
         raise ContractViolationError("Cost/credit magnitudes must be nonnegative")
-    signed = [pl.col(column) * sign for column, sign in COMPONENTS.values()]
+    signed = [pl.col(column) * sign for column, sign in components.values()]
     bad = cashflows.filter(
         ((pl.sum_horizontal(*signed) - pl.col("total_real")).abs()
          > 1e-8 + 1e-10 * pl.col("total_real").abs())
@@ -75,7 +78,7 @@ def build_component_report(cashflows: pl.DataFrame, metadata: pl.DataFrame,
             KEYS + ["offset", pl.lit(component).alias("component"),
                     (pl.col(column) * sign).alias("signed_cost_real"),
                     (pl.col(column) * sign * pl.col("discount_factor")).alias("component_pv_real")]
-        ) for component, (column, sign) in COMPONENTS.items()
+        ) for component, (column, sign) in components.items()
     ])
     keys = KEYS + ["component"]
     require_unique(metadata, keys, "component metadata")
@@ -154,7 +157,8 @@ def write_contribution_chart(report: pl.DataFrame, output_path: Path,
                 for ax, group in zip(axes[:, 0], groups):
                     active = group.filter(pl.col("enabled") | pl.col("baseline_enabled"))
                     values = active["npv_contribution_real"].to_list()
-                    labels = [c.replace("_", " ").title() for c in active["component"]]
+                    names = {"building_loss": "Roof / exterior loss", "downtime": "Loss of use"} if "interior_loss" in group["component"] else {}
+                    labels = [names.get(c, c.replace("_", " ").title()) for c in active["component"]]
                     net = group["incremental_npv_real"][0]
                     ax.barh(labels, values, color=["#147d64" if v >= 0 else "#b44a42" for v in values])
                     ax.scatter([net], ["Net incremental NPV"], marker="D", color="#172b4d", s=65, zorder=3)

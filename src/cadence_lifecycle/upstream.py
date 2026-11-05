@@ -35,6 +35,13 @@ def price_disposal(cadence_root: Path, base: pl.DataFrame, fees_path: Path) -> p
     return _call(cadence_root, "disposal", rows=base.to_dicts(), fees=str(Path(fees_path).resolve()))
 
 
+def evaluate_upstream_economics(cadence_root: Path, state: pl.DataFrame, damage: pl.DataFrame,
+                                costs: pl.DataFrame, config: dict) -> pl.DataFrame:
+    """Read-only source reconciliation helper; no state or hazard simulation."""
+    return _call(cadence_root,"annual_economics",state=state.to_dicts(),damage=damage.to_dicts(),
+                 costs=costs.to_dicts(),config=config)
+
+
 def load_material_mass(cadence_root: Path, mass_path: Path,
                        mapping_path: Path, class_map_path: Path) -> pl.DataFrame:
     """Use CADENCE's approved official-class mapper when its inputs are available."""
@@ -78,6 +85,10 @@ def _main():
         result = loaded["materials"].build_material_mass_lookup(
             *(Path(p) for p in payload["paths"])
         )
+    elif operation == "annual_economics":
+        from cadence.economics.alternative_analysis import build_annual_alternative_economics
+        result=build_annual_alternative_economics(pl.DataFrame(payload["state"]),pl.DataFrame(payload["damage"]),
+            pl.DataFrame(payload["costs"]),loaded["contracts"].EconomicsRunConfig.model_validate(payload["config"]))
     else:
         raise ValueError(f"Unknown bridge operation: {operation}")
     print(result.write_json())
