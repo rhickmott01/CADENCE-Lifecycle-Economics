@@ -1,6 +1,6 @@
 # CADENCE-Lifecycle-Economics
 
-**Status: first-draft standalone repository, not yet integrated with the main CADENCE engine.**
+**Status: tested standalone lifecycle research implementation; production CADENCE integration and water-damage calibration remain pending.**
 
 This package independently evaluates roofing lifecycle alternatives while preserving CADENCE's ownership of actual stock-flow state and decision rules. It does **not** modify the original CADENCE repository. An opt-in read-only subprocess bridge reuses selected CADENCE reference calculations without importing its engine into this package's process.
 
@@ -75,6 +75,41 @@ PYTHONDONTWRITEBYTECODE=1 python -B scripts/run_cost_driver_analysis.py
 
 The example uses synthetic installation costs and fixed-EUL assumptions. Hazard and casualty benefits are excluded; the shared HUD rate is exported as a reference, with downtime costs disabled until supported expected days are supplied. See [report contracts and reproduction](docs/cost_driver_report.md) and [the integration roadmap](docs/PROJECT_CONTEXT.md#prioritized-integration-roadmap). The next priorities are property damage beyond the roof, contents damage, and loss of use; casualty-risk research is deferred.
 
+The [loss-of-use input adapter](docs/loss_of_use_integration.md) accepts validated annual displacement days or already-valued housing costs from upstream repositories. It provides configurable county/bedroom housing lookup, explicit dollar-basis conversion, complete annual support checks, and attachment to the existing NPV engine. Raw hazard/climate/state calculations remain upstream. The current example chart continues to exclude loss of use until validated annual inputs and a documented price basis are supplied.
+
 ## Development boundaries
 
 One climate trajectory, geometry-free simulation, versioned immutable reference data, source-aware canonical mappings, no insurance rules engine, no per-asset Python loops, and no modification of main CADENCE. CADENCE's burnout/voluntary-upgrade precedence remains unresolved and is not decided here.
+
+
+## Full lifecycle analysis
+
+All five requested pathways now run together: installed/replacement/maintenance
+costs, temporary housing, removal-event landfill tipping, interior water damage,
+and separate contents damage. The new water model uses propagation and damage
+relationships reviewed in Abreu (2019), with explicit assumed capacities and
+exposed values. It is a provisional single-story adaptation, not a calibrated
+predictive model. The existing lifecycle financial engine handles discounting,
+terminal value, baseline comparisons and reconciled component contributions.
+
+```sh
+./.venv/bin/python -B scripts/run_full_lifecycle.py
+./.venv/bin/python -B scripts/run_full_lifecycle.py --sensitivity --samples 8 --seed 20261104 --output-root outputs/full_lifecycle_final
+./.venv/bin/python -m pytest -q
+```
+
+The three illustrative assumption sets compare an existing asphalt roof,
+immediate asphalt replacement, and a metal upgrade. Synthetic installed prices,
+physical consequences, inventory values and downtime are explicitly labeled;
+actual shared tipping/mass/housing sources retain their years and hashes.
+Parquet, CSV, schema manifests and SVG/PNG contribution charts are published as
+immutable local runs. Repeating an identical run requires a new output root.
+
+Use `--input-dir` to consume prepared source-aware annual inputs and upstream
+replacement/terminal tables. No new hazard annualization, climate/fragility
+pipeline, material proxy, or stock-flow decision engine is introduced. The new
+exchange is a documented integration proposal, not a drop-in dashboard schema.
+See [the complete contract and commands](docs/lifecycle_exchange_v1.md),
+[water/contents methodology](docs/water_damage_methodology.md),
+[verified architecture audit](docs/portfolio_compatibility.md), and
+[implementation report](docs/full_implementation_report.md).

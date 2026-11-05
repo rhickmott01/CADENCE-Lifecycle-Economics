@@ -170,7 +170,7 @@ summary and annual schema.
 ## Uncertainty
 
 Low/central/high are joint **assumption sets**, not confidence bounds. Optional
-one-at-a-time endpoint cases isolate all eleven exposed fixture controls. Seeded
+one-at-a-time endpoint cases isolate all ten exposed fixture controls. Seeded
 Monte Carlo uses independent triangular distributions over these same explicit
 endpoints/mode; dependence and probabilities are assumed, not estimated. The
 results propagate conditional water losses through the existing supplied-mass

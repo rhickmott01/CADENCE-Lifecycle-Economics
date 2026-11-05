@@ -87,4 +87,41 @@ The next modeling priorities are property damage beyond the roof, contents damag
 
 On November 3, 2026 the user confirmed configurable geography/housing size with a Durham/two-bedroom demonstration; storm-related temporary housing before insurance; validated HAZUS-derived annual expected displacement days; and documented conversion of the shared 2025 housing rate to a 2026 dollar base with constant real rates afterward. The detailed scope and remaining source-validation requirements are recorded in [assumptions_register.md](assumptions_register.md#loss-of-use-scope-confirmed-november-3-2026).
 
-The user holds the large HAZUS dataset in Duke Box. Access to the actual curve partitions and matching hazard inputs remains a prerequisite to a defensible numerical run. A local Box Drive path with targeted on-demand downloads is the recommended initial access route. No loss-of-use NPV has yet been calculated using these newly confirmed assumptions.
+The user holds the large HAZUS dataset in Duke Box. The supplied `iecc2021/1A/age_01` partition is accessible and has been inspected read-only. It contains 7,160 loss-of-use curves, 293,560 selected response points, wind support 50–250 mph, and raw responses 0–720. Source metadata identifies Hazus 6.1, `HazusWindDamFunctions_Hazus61.xlsx` / `huDamLossFun`, and transformation `recursive-horizontal-v1`. Occupancy is null on the loss-of-use curve rows and no explicit response-unit field is present. Source definitions and applicability therefore remain prerequisites to scientific interpretation; 1A/age 1 is a source sample rather than a confirmed Durham scenario.
+
+The user subsequently clarified that upstream repositories will provide the required inputs and retain their calculations. The consumer-side adapter now accepts validated annual displacement days for optional housing valuation, or already-valued annual housing costs for direct attachment. It reuses the existing consequence monetization and NPV machinery; it does not implement hazard integration or recreate climate/state pipelines. See [loss_of_use_integration.md](loss_of_use_integration.md) for the proposed versioned Parquet and provenance contracts.
+
+The housing conversion factor and the validated annual input export are still pending. Unit tests use explicitly synthetic fixtures; no HAZUS-derived loss-of-use NPV or replacement chart has been published. Source inspection output is recorded locally under `outputs/loss_of_use_inspection/`.
+
+## Autonomous full-component extension — November 4, 2026
+
+The user's new written assignment explicitly authorizes interior/contents damage
+research and implementation, all-component lifecycle integration, Parquet exchange,
+sensitivity analysis, and incremental commits/pushes on the existing development
+branch. It supersedes the earlier narrow implementation scope and per-commit
+approval wording above; all sibling repositories remain read-only.
+
+The Portfolio Mapping repository was inspected at tree
+`0392d17dbacc9076174850dc2cdcbc0f0bc049d5`; see
+[verified compatibility findings](portfolio_compatibility.md). The thesis website
+returned 403, after which the user supplied the original PDF. Its propagation
+relationships and printed p42 damage equations are now used in a bounded,
+explicitly provisional single-story model. This is not a complete replication or
+calibration of FPHLM.
+
+`analysis.py` extends the existing financial engine with a separate optional
+interior stream, complete source-aware v1 exports, and upstream event/terminal
+inputs. `cadence_exchange.py` translates inspected CADENCE annual-analysis fields
+without rebuilding physical state. `demo.py` generates all five pathways using
+actual shared disposal/housing anchors and conspicuously synthetic remaining
+inputs. `sensitivity.py` provides endpoint and seeded joint assumption cases.
+See [reproduction and interfaces](lifecycle_exchange_v1.md).
+
+The existing 2026 housing conversion and validated annual HAZUS input dependencies
+remain unresolved. The new demonstration uses 2024 real dollars and explicitly
+labels its equal-dollar 2025 housing proxy. It does not replace the earlier
+consumer adapter's requirement for documented production conversion and approved
+annual days. Remaining production blockers are calibrated rain/breach/capacity
+and exposure inputs, approved material/scenario mappings, nonoverlapping upstream
+loss channels, and horizon/repair/terminal reconciliation. No production dashboard,
+stock-flow state or adoption logic was changed.

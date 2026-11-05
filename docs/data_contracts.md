@@ -26,6 +26,21 @@ One row per `(asset_id,year,option_id)` with `building_value_real`, `contents_va
 
 Cash flows additionally expose `cashflow_type` (`annual` or `terminal`), `discount_factor`, and positive `terminal_credit_real` (zero on annual rows). Total costs subtract this credit. The reporter requires complete offsets from zero through a common terminal boundary. Component metadata, contribution outputs, disposal event inputs, and provenance are specified in [cost_driver_report.md](cost_driver_report.md).
 
+## Upstream loss-of-use inputs
+
+Consume a versioned annual displacement-days export or already-valued annual costs at `(asset_id,decision_year,option_id,offset)` grain. Keep hazard, climate, state and HAZUS annualization calculations in their owning repositories. Source/method IDs, validation status, annual timing, units and dollar-year provenance are required. See [loss_of_use_integration.md](loss_of_use_integration.md) for fields, validation rules and the optional housing valuation adapter.
+
 ## Source-value mappings
 
 Source label, normalized label, source dataset ID, mapping version, relationship type, canonical material ID, approved proxy ID and confidence must be preserved upstream. Unknown, ambiguous or unapproved values cannot enter simulation.
+
+## Full lifecycle exchange v1
+
+The proposed [lifecycle exchange v1](lifecycle_exchange_v1.md) preserves upstream
+physical `scenario_id` alongside financial `option_id` and a separate sensitivity
+`assumption_set_id`. It adds an optional `interior_loss_real` stream to the existing
+engine without changing legacy callers' schemas. Production callers supply their
+replacement events and terminal values rather than using the fixed-EUL pilot.
+All complete annual costs, component sources/statuses, base years and stream
+boundaries are explicit. Parquet schemas, DuckDB joins and NPV/component
+reconciliation are checked before immutable publication.
