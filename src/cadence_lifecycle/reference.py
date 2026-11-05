@@ -12,10 +12,24 @@ def select_housing_rate(path: Path, county_fips: str, source_year: int,
         raise ContractViolationError("county_fips must be a five-character digit string")
     frame = pl.read_csv(path, schema_overrides={"county_fips": pl.String})
     require_columns(frame, ["year", "county_fips", "primary_bedroom", "relocation_cost_per_day"], "housing")
+    bedroom_columns = {
+        "Efficiency": "daily_efficiency", "One-Bedroom": "daily_one_bedroom",
+        "Two-Bedroom": "daily_two_bedroom", "Three-Bedroom": "daily_three_bedroom",
+        "Four-Bedroom": "daily_four_bedroom",
+    }
+    if bedroom not in bedroom_columns:
+        raise ContractViolationError("Unsupported housing bedroom category")
     selected = frame.filter(
         (pl.col("county_fips").str.zfill(5) == county_fips)
-        & (pl.col("year") == source_year) & (pl.col("primary_bedroom") == bedroom)
+        & (pl.col("year") == source_year)
     )
+    source_column = bedroom_columns[bedroom]
+    if source_column in frame.columns:
+        # The published file contains all bedroom tiers, even though its
+        # relocation_cost_per_day convenience column uses one primary tier.
+        selected = selected.with_columns(pl.col(source_column).alias("relocation_cost_per_day"))
+    else:
+        selected = selected.filter(pl.col("primary_bedroom") == bedroom)
     if selected.is_empty():
         raise ContractViolationError("No housing rate for requested county/year/bedroom")
     require_finite(selected, ["relocation_cost_per_day"], "housing rates")

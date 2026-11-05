@@ -41,13 +41,33 @@ def monetize_consequences(expected:pl.DataFrame, exposure:pl.DataFrame)->pl.Data
     """
     k=["asset_id","year","option_id"]
     require_columns(expected,k+["damage_type","expected_response"],"expected")
-    require_columns(exposure,k+["building_value_real","contents_value_real","daily_relocation_real","debris_area_sqft","debris_cleanup_per_ton_real"],"exposure")
+    if expected.is_empty():
+        raise ContractViolationError("expected consequences cannot be empty")
+    require_unique(expected,k+["damage_type"],"expected")
+    if expected.filter(pl.col("damage_type").is_null() | ~pl.col("damage_type").is_in(list(MEASURES))).height:
+        raise ContractViolationError("unsupported damage type")
+    exposure_by_measure={
+        "building_loss":["building_value_real"], "content_loss":["contents_value_real"],
+        "loss_of_use":["daily_relocation_real"],
+        "debris_brick_wood":["debris_area_sqft","debris_cleanup_per_ton_real"],
+        "debris_concrete_steel":["debris_area_sqft","debris_cleanup_per_ton_real"],
+    }
+    required=sorted({c for measure in expected["damage_type"].unique() for c in exposure_by_measure[measure]})
+    require_columns(exposure,k+required,"exposure")
     require_unique(exposure,k,"exposure")
-    joined=expected.join(exposure,on=k,how="left",validate="m:1")
-    if joined.select(pl.any_horizontal(*[pl.col(c).is_null() for c in ["building_value_real","contents_value_real","daily_relocation_real","debris_area_sqft","debris_cleanup_per_ton_real"]])).to_series().any():
+    joined=expected.join(exposure.select(k+required),on=k,how="left",validate="m:1")
+    if joined.select(pl.any_horizontal(*[pl.col(c).is_null() | ~pl.col(c).is_finite() for c in required])).to_series().any():
         raise ContractViolationError("missing exposure values")
-    if joined.filter(pl.any_horizontal(*[pl.col(c)<0 for c in ["building_value_real","contents_value_real","daily_relocation_real","debris_area_sqft","debris_cleanup_per_ton_real"]])).height:
+    if joined.filter(pl.any_horizontal(*[pl.col(c)<0 for c in required])).height:
         raise ContractViolationError("negative exposure or cost")
+    if expected.filter(pl.col("expected_response").is_null() | ~pl.col("expected_response").is_finite()
+                       | (pl.col("expected_response")<0)
+                       | (pl.col("damage_type").is_in(["building_loss","content_loss"]) & (pl.col("expected_response")>1))).height:
+        raise ContractViolationError("invalid expected consequence response")
+    # Polars resolves every branch. Null placeholders for unused measure fields
+    # permit selective monetization without inventing prices for disabled streams.
+    for column in {c for fields in exposure_by_measure.values() for c in fields} - set(required):
+        joined=joined.with_columns(pl.lit(None,dtype=pl.Float64).alias(column))
     return (joined.with_columns(cost_real=pl.when(pl.col("damage_type")=="building_loss").then(pl.col("expected_response")*pl.col("building_value_real"))
         .when(pl.col("damage_type")=="content_loss").then(pl.col("expected_response")*pl.col("contents_value_real"))
         .when(pl.col("damage_type")=="loss_of_use").then(pl.col("expected_response")*pl.col("daily_relocation_real"))
